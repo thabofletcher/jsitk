@@ -8,6 +8,29 @@
 	options = options || {}
 	var jqhost = options.jqhost || '//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
 
+	var require = function(scripts, callback) {
+        var count = 0;
+        var total = scripts.length
+
+    	var loaded = function() {
+    		count++;
+    		if (count == total)
+    			callback()
+    	}
+
+        var loadscr = function(src) {
+	        var scr = document.createElement('script')
+	        scr.async = true
+	        scr.src = src
+	        scr.addEventListener('load', loaded, false)
+	        document.head.appendChild(scr)
+	    }
+
+        for (var i = 0; i < total; i++) {
+            loadscr(scripts[i])
+        }
+    }
+
 	var embed = function ($, uninject) {
 		var dimmed = [];
 		var dim = function () {
@@ -34,7 +57,7 @@
 			uninject()
 		}
 
-	    if (options.onembed) try { options.onembed($, unembed) } catch(e) { }
+	    if (options.onembed) try { options.onembed($, require, unembed) } catch(e) { }
 	}
 
 	var inject = function (retried) {
@@ -45,9 +68,7 @@
 			try {
 				jQuery.noConflict()
 				jQuery(document).ready(function ($) {
-					var uninject = function() {
-						$('#'+appid).remove();
-					}
+					var uninject = function() {	$('#'+appid).remove() }
 
 					if (options.oninject) try { options.oninject($, uninject) } catch(e) { }
 					if (options.content) embed($, uninject)
